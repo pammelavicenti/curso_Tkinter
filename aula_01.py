@@ -26,7 +26,7 @@ class Funcs():
                 telefone INTEGER(20),
                 cidade CHAR(40)
             );
-        
+        # teste
         """)
 
 class Application(Funcs):
