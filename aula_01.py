@@ -13,11 +13,11 @@ class Funcs():
         self.cidade_entry.delete(0, END)
     def conecta_bd(self):
         self.conn = sqlite3.connect("clientes.bd")
-        self.cursor = self.conn.cursor()
+        self.cursor = self.conn.cursor(); print("Conectando ao banco de dados")
     def desconecta_bd(self):
-        self.conn.close()
+        self.conn.close(); print("Desconectando ao banco de dados")
     def montaTabelas(self):
-        self.conecta_bd(); print("Conectando ao banco de dados")
+        self.conecta_bd()
         ### Criar tabela 
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS clientes (    
@@ -28,7 +28,7 @@ class Funcs():
             );
      
         """)
-        self.commit(); print("Banco de dados criado")
+        self.conn.commit(); print("Banco de dados criado")
         self.desconecta_bd
 
 class Application(Funcs):
@@ -38,6 +38,7 @@ class Application(Funcs):
         self.frames_da_tela()
         self.widgets_frame1()
         self.lista_frame2()
+        self.montaTabelas()
         root.mainloop()
     def tela(self): # Função da tela 
         self.root.title("Cadastro de clientes") #Titulo da aba da tela
