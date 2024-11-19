@@ -20,7 +20,7 @@ class Funcs():
         self.conecta_bd(); print("Conectando ao banco de dados")
         ### Criar tabela 
         self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS clientes (
+            CREATE TABLE IF NOT EXISTS clientes (    
                 cod INTEGER PRIMARY KEY,
                 nome_cliente CHAR(40) NOT NULL, 
                 telefone INTEGER(20),
@@ -28,6 +28,8 @@ class Funcs():
             );
      
         """)
+        self.commit(); print("Banco de dados criado")
+        self.desconecta_bd
 
 class Application(Funcs):
     def __init__(self):
