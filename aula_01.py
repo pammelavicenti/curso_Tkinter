@@ -73,7 +73,15 @@ class Funcs():
         self.desconecta_bd()
         self.limpa_tela()
         self.select_lista()
-
+    def altera_cliente(self):
+        self.variaveis()
+        self.conecta_bd()
+        self.cursor.execute(""" UPDATE clientes SET nome_cliente = ?, telefone = ?, cidade = ?
+            WHERE cod = ? """, (self.nome, self.fone, self.cidade, self.codigo))
+        self.conn.commit()
+        self.desconecta_bd()
+        self.select_lista()
+        self.limpa_tela()
 class Application(Funcs):
     def __init__(self):
         self.root = root
@@ -83,6 +91,7 @@ class Application(Funcs):
         self.lista_frame2()
         self.montaTabelas()
         self.select_lista()
+        self.Menus()
         root.mainloop()
     def tela(self): # Função da tela 
         self.root.title("Cadastro de clientes") #Titulo da aba da tela
@@ -113,12 +122,12 @@ class Application(Funcs):
         self.bt_novo.place(relx= 0.6, rely= 0.1, relwidth= 0.1, relheight= 0.15)
         # Criação do botão alterar
         self.bt_alterar = Button(self.frame_1, text= "Alterar", bd=2, bg = '#107db2', fg='white'
-                                , font= ('verdana', 8, 'bold')) 
+                                , font= ('verdana', 8, 'bold'), command= self.altera_cliente) 
         self.bt_alterar.place(relx= 0.7, rely= 0.1, relwidth= 0.1, relheight= 0.15)
         # Criação do botão apagar
-        self.bt_limpar = Button(self.frame_1, text= "Apagar", bd=2, bg = '#107db2', fg='white'
-                                , font= ('verdana', 8, 'bold'), command=self.deleta_cliente) 
-        self.bt_limpar.place(relx= 0.8, rely= 0.1, relwidth= 0.1, relheight= 0.15)
+        self.bt_apagar = Button(self.frame_1, text= "Apagar", bd=2, bg = '#107db2', fg='white'
+                                , font= ('verdana', 8, 'bold'), command= self.deleta_cliente) 
+        self.bt_apagar.place(relx= 0.8, rely= 0.1, relwidth= 0.1, relheight= 0.15)
 
         # Criação da label e entrada do código
         self.lb_codigo = Label(self.frame_1, text= "Código", bg= '#dfe3ee', fg = '#107db2')
@@ -167,6 +176,18 @@ class Application(Funcs):
         self.listaCli.configure(yscroll=self.scroolLista.set) 
         self.scroolLista.place(relx=0.96, rely=0.1,relwidth=0.04, relheight=0.85)
         self.listaCli.bind("<Double-1>", self.OnDoubleClick)
+    def Menus(self):
+        menubar = Menu(self.root)
+        self.root.config(menu=menubar)
+        filemenu = Menu(menubar)
+        filemenu2 = Menu(menubar)
 
+        def Quit(): self.root.destroy()
+
+        menubar.add_cascade(label= "Opções", menu = filemenu) # Criação de menu de tarefas  
+        menubar.add_cascade(label= "Sobre", menu = filemenu2) # Criação de menu de tarefas
+
+        filemenu.add_command(label="Sair", command= Quit) # Criação de comando para sair da tela
+        filemenu2.add_command(label="Limpa Cliente", command= self.limpa_tela) # Criação de comando para limpar a tela
         
 Application()
