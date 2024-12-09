@@ -2,7 +2,46 @@ from tkinter import *
 from tkinter import ttk
 import sqlite3
 
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Image
+import webbrowser
+
 root = Tk()
+
+class Relatorios():
+    def printCliente(self):  # Função para chamar e exibir o arquivo
+        webbrowser.open("cliente.pdf")
+    def geraRelatCliente(self):     # Função para fazer um PDF com os dados do clientes
+        self.c = canvas.Canvas("cliente.pdf")
+
+        self.codigoRel = self.codigo_entry.get()
+        self.nomeRel = self.nome_entry.get()
+        self.foneRel = self.fone_entry.get()
+        self.cidadeRel = self.cidade_entry.get()
+
+        self.c.setFont("Helvetica-Bold", 24) 
+        self.c.drawString(200, 790, 'Ficha do Cliente')
+
+        self.c.setFont("Helvetica-Bold", 18) 
+        self.c.drawString(50, 700, 'Código: ')
+        self.c.drawString(50, 660, 'Nome: ')
+        self.c.drawString(50, 630, 'Telefone: ')
+        self.c.drawString(50, 600, 'Cidade: ')
+
+        self.c.setFont("Helvetica", 18) 
+        self.c.drawString(150, 700, self.codigoRel)
+        self.c.drawString(150, 660, self.nomeRel)
+        self.c.drawString(150, 630, self.foneRel)
+        self.c.drawString(150, 600, self.cidadeRel)
+
+        self.c.rect(20, 550, 550, 1, fill=False, stroke=True)  # Para criar linhas e espaçamentos na tela
+
+        self.c.showPage()
+        self.c.save()
+        self.printCliente()
 
 class Funcs():
     def limpa_tela(self):     # Função para apagar da tela
@@ -82,7 +121,7 @@ class Funcs():
         self.desconecta_bd()
         self.select_lista()
         self.limpa_tela()
-class Application(Funcs):
+class Application(Funcs, Relatorios):
     def __init__(self):
         self.root = root
         self.tela()
@@ -185,9 +224,11 @@ class Application(Funcs):
         def Quit(): self.root.destroy()
 
         menubar.add_cascade(label= "Opções", menu = filemenu) # Criação de menu de tarefas  
-        menubar.add_cascade(label= "Sobre", menu = filemenu2) # Criação de menu de tarefas
+        menubar.add_cascade(label= "Relatórios", menu = filemenu2) # Criação de menu de tarefas
 
         filemenu.add_command(label="Sair", command= Quit) # Criação de comando para sair da tela
-        filemenu2.add_command(label="Limpa Cliente", command= self.limpa_tela) # Criação de comando para limpar a tela
+        filemenu.add_command(label="Limpa Cliente", command= self.limpa_tela) # Criação de comando para limpar a tela
+
+        filemenu2.add_command(label="Ficha do Cliente", command= self.geraRelatCliente)
         
 Application()
