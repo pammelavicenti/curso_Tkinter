@@ -1,10 +1,13 @@
-import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from PIL import Image, ImageTk
 import matplotlib.pyplot as plt
 import random
 import os
+
+# Configuração do tema customtkinter
+ctk.set_appearance_mode("light")  # Modos: "dark", "light"
+ctk.set_default_color_theme("blue")
 
 # Dados históricos simulados
 historico_velocidade = [0]
@@ -35,12 +38,12 @@ def atualizar_graficos(axs, canvas):
 
 # Funções para os botões
 def ligar_sistema():
-    status_label.config(text="Status: Ligado", fg="green")
-    ultima_acao_label.config(text="Última ação tomada: Sistema Ligado")
+    status_label.configure(text="Status: Ligado", text_color="green")
+    ultima_acao_label.configure(text="Última ação tomada: Sistema Ligado")
 
 def desligar_sistema():
-    status_label.config(text="Status: Desligado", fg="red")
-    ultima_acao_label.config(text="Última ação tomada: Sistema Desligado")
+    status_label.configure(text="Status: Desligado", text_color="red")
+    ultima_acao_label.configure(text="Última ação tomada: Sistema Desligado")
 
 def gerar_relatorio():
     print("Relatório gerado!")
@@ -61,7 +64,7 @@ def atualizar_dados_historicos():
 
 def abrir_graficos():
     # Cria uma nova janela para exibir os gráficos
-    grafico_window = tk.Toplevel(root)
+    grafico_window = ctk.CTkToplevel(root)
     grafico_window.title("Gráficos de Dados Históricos")
     grafico_window.geometry("800x600")
 
@@ -71,7 +74,7 @@ def abrir_graficos():
 
     # Embeda o gráfico no Tkinter
     canvas = FigureCanvasTkAgg(fig, grafico_window)
-    canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+    canvas.get_tk_widget().pack(fill="both", expand=True)
 
     # Atualiza os gráficos dinamicamente
     def loop_atualizacao():
@@ -81,86 +84,90 @@ def abrir_graficos():
     loop_atualizacao()
 
 # Janela principal
-root = tk.Tk()
+root = ctk.CTk()
 root.title("Sistema Supervisório - Correia Transportadora")
 root.geometry("900x700")
 root.resizable(False, False)
 
-# Título
-titulo_label = tk.Label(root, text="Controle Da Correia Transportadora", font=("Helvetica", 16, "bold"))
-titulo_label.pack(pady=10)
+# Frame para o logotipo
+frame_logo = ctk.CTkFrame(root)
+frame_logo.pack(fill="x", pady=2, anchor="nw")
 
 # Adicionar logotipo
 try:
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Imagem não encontrada no caminho: {image_path}")
-    
-    img = Image.open(image_path).resize((150, 80))  # Redimensione se necessário
+
+    img = Image.open(image_path).resize((180, 100))  # Redimensione se necessário
     logo_image = ImageTk.PhotoImage(img)
 
-    logo_label = tk.Label(root, image=logo_image)
+    logo_label = ctk.CTkLabel(frame_logo, image=logo_image, text="")
     logo_label.image = logo_image
-    logo_label.pack(pady=10, anchor="nw")
+    logo_label.pack(anchor="nw")
 except Exception as e:
     print(f"Erro ao carregar a imagem: {e}")
-    logo_label = tk.Label(root, text="Logo não encontrada", font=("Helvetica", 10), fg="red")
-    logo_label.pack(pady=10, anchor="nw")
+    logo_label = ctk.CTkLabel(frame_logo, text="Logo não encontrada", font=("Helvetica", 10), text_color="red")
+    logo_label.pack(anchor="nw")
+
+# Título
+titulo_label = ctk.CTkLabel(root, text="Controle Da Correia Transportadora", font=("Helvetica", 16, "bold"))
+titulo_label.pack(pady=10)
 
 # Frames para organizar a interface
-frame_superior = tk.Frame(root)
+frame_superior = ctk.CTkFrame(root)
 frame_superior.pack(pady=10)
 
-frame_central = tk.Frame(root)
+frame_central = ctk.CTkFrame(root)
 frame_central.pack(pady=10)
 
-frame_inferior = tk.Frame(root)
+frame_inferior = ctk.CTkFrame(root)
 frame_inferior.pack(pady=10)
 
 # Botões de controle (Ligar/Desligar)
-comando_frame = tk.LabelFrame(frame_superior, text="Comando", font=("Helvetica", 12))
+comando_frame = ctk.CTkFrame(frame_superior)
 comando_frame.pack(side="left", padx=20)
 
-botao_ligar = tk.Button(comando_frame, text="Ligar", font=("Helvetica", 12), bg="green", fg="white", command=ligar_sistema)
+botao_ligar = ctk.CTkButton(comando_frame, text="Ligar", font=("Helvetica", 12), fg_color="green", command=ligar_sistema)
 botao_ligar.pack(pady=5)
 
-botao_desligar = tk.Button(comando_frame, text="Desligar", font=("Helvetica", 12), bg="red", fg="white", command=desligar_sistema)
+botao_desligar = ctk.CTkButton(comando_frame, text="Desligar", font=("Helvetica", 12), fg_color="red", command=desligar_sistema)
 botao_desligar.pack(pady=5)
 
-ultima_acao_label = tk.Label(comando_frame, text="Última ação tomada: -", font=("Helvetica", 10))
+ultima_acao_label = ctk.CTkLabel(comando_frame, text="Última ação tomada: -", font=("Helvetica", 10))
 ultima_acao_label.pack(pady=5)
 
 # Indicadores de status
-status_frame = tk.LabelFrame(frame_superior, text="Status", font=("Helvetica", 12))
+status_frame = ctk.CTkFrame(frame_superior)
 status_frame.pack(side="left", padx=20)
 
-status_label = tk.Label(status_frame, text="Status: Desligado", font=("Helvetica", 12), fg="red")
+status_label = ctk.CTkLabel(status_frame, text="Status: Desligado", font=("Helvetica", 12), text_color="red")
 status_label.pack(pady=10)
 
 # Monitoramento de parâmetros
-parametros_frame = tk.LabelFrame(frame_central, text="Monitoramento de Parâmetros", font=("Helvetica", 12))
+parametros_frame = ctk.CTkFrame(frame_central)
 parametros_frame.pack(fill="x", padx=20, pady=10)
 
-parametro_velocidade = tk.Label(parametros_frame, text="Velocidade: 0 m/s", font=("Helvetica", 10))
+parametro_velocidade = ctk.CTkLabel(parametros_frame, text="Velocidade: 0 m/s", font=("Helvetica", 10))
 parametro_velocidade.pack(anchor="w", pady=5)
 
-parametro_desgaste = tk.Label(parametros_frame, text="Níveis de Desgaste: Normal", font=("Helvetica", 10))
+parametro_desgaste = ctk.CTkLabel(parametros_frame, text="Níveis de Desgaste: Normal", font=("Helvetica", 10))
 parametro_desgaste.pack(anchor="w", pady=5)
 
-parametro_carga = tk.Label(parametros_frame, text="Carga Transportada: 0 kg", font=("Helvetica", 10))
+parametro_carga = ctk.CTkLabel(parametros_frame, text="Carga Transportada: 0 kg", font=("Helvetica", 10))
 parametro_carga.pack(anchor="w", pady=5)
 
 # Relatórios e gráficos
-relatorios_frame = tk.LabelFrame(frame_inferior, text="Relatórios e Gráficos", font=("Helvetica", 12))
+relatorios_frame = ctk.CTkFrame(frame_inferior)
 relatorios_frame.pack(fill="x", padx=20, pady=10)
 
-botao_relatorio = tk.Button(relatorios_frame, text="Gerar Relatório", font=("Helvetica", 12), command=gerar_relatorio)
+botao_relatorio = ctk.CTkButton(relatorios_frame, text="Gerar Relatório", font=("Helvetica", 12), command=gerar_relatorio)
 botao_relatorio.pack(pady=5)
 
-botao_grafico = tk.Button(relatorios_frame, text="Exibir Gráficos", font=("Helvetica", 12), command=abrir_graficos)
+botao_grafico = ctk.CTkButton(relatorios_frame, text="Exibir Gráficos", font=("Helvetica", 12), command=abrir_graficos)
 botao_grafico.pack(pady=5)
 
 # Rodapé com a data
-data_label = tk.Label(root, text="06/01/2025 - Quinta-feira", font=("Helvetica", 10, "italic"))
+data_label = ctk.CTkLabel(root, text="06/01/2025 - Quinta-feira", font=("Helvetica", 10, "italic"))
 data_label.pack(side="bottom", pady=10)
 
 # Atualiza os dados históricos

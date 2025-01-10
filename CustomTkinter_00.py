@@ -25,6 +25,7 @@ my_button = customtkinter.CTkButton(root,
     hover_color="green", # Cor do botão fica verde quando passar o mouse
     corner_radius=50, # Arredondamento do botão
     border_width=5, # Borda do botão
+    border_color="yellow", # Mudar a cor da borda do botão
     ) 
 
 my_button.pack(pady=80)
