@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 import random
 import os
 import csv
-import pyperclip  # Biblioteca para copiar para a área de transferência
+import pyperclip
+import winsound  # Para adicionar som aos alertas
+import time
 
 # Configuração do tema customtkinter
 ctk.set_appearance_mode("light")
@@ -65,42 +67,62 @@ def verificar_alertas():
     desgaste_atual = historico_desgaste[-1]
     carga_atual = historico_carga[-1]
 
-    # Verifica desgaste
+    # Alerta de desgaste crítico
     if desgaste_atual > 90:
         alerta_label.configure(
             text=f"ALERTA: Desgaste crítico ({desgaste_atual}%)!",
-            text_color="orange"
+            text_color="white",
+            fg_color="orange"
         )
-        print(f"ALERTA: Desgaste crítico ({desgaste_atual}%)!")
+        alerta_label.after(500, lambda: alerta_label.configure(fg_color="red"))
+        alerta_label.after(1000, lambda: alerta_label.configure(fg_color="orange"))
+        mostrar_popup_alerta(f"ALERTA: Desgaste crítico ({desgaste_atual}%)!")
+        tocar_alerta_sonoro()
 
-    # Verifica carga
+    # Alerta de carga excessiva
     elif carga_atual > 900:
         alerta_label.configure(
             text=f"ALERTA: Carga excessiva ({carga_atual} kg)!",
-            text_color="red"
+            text_color="white",
+            fg_color="red"
         )
-        print(f"ALERTA: Carga excessiva ({carga_atual} kg)!")
+        alerta_label.after(500, lambda: alerta_label.configure(fg_color="orange"))
+        alerta_label.after(1000, lambda: alerta_label.configure(fg_color="red"))
+        mostrar_popup_alerta(f"ALERTA: Carga excessiva ({carga_atual} kg)!")
+        tocar_alerta_sonoro()
+
+    # Sistema estável
     else:
-        alerta_label.configure(text="Sistema estável.", text_color="green")
+        alerta_label.configure(
+            text="Sistema estável.",
+            text_color="white",
+            fg_color="green"
+        )
 
-# Função para atualizar gráficos
-def atualizar_graficos(axs, canvas):
-    axs[0].clear()
-    axs[0].plot(historico_velocidade, label="Velocidade (m/s)", color="blue")
-    axs[0].set_title("Velocidade")
-    axs[0].legend()
+# Função para mostrar pop-up de alerta
+def mostrar_popup_alerta(mensagem):
+    popup = ctk.CTkToplevel(root)
+    popup.title("Alerta")
+    popup.geometry("300x100")
+    popup.resizable(False, False)
 
-    axs[1].clear()
-    axs[1].plot(historico_desgaste, label="Desgaste (%)", color="orange")
-    axs[1].set_title("Níveis de Desgaste")
-    axs[1].legend()
+    # Garante que o pop-up seja mostrado na frente da janela principal
+    popup.lift()  # Levanta a janela pop-up
+    popup.attributes('-topmost', True)  # Faz a janela ser sempre a mais superior
+    popup.focus_force()  # Garante que o foco esteja na janela pop-up
 
-    axs[2].clear()
-    axs[2].plot(historico_carga, label="Carga (kg)", color="green")
-    axs[2].set_title("Carga Transportada")
-    axs[2].legend()
+    alerta_label = ctk.CTkLabel(popup, text=mensagem, font=("Helvetica", 12), text_color="red")
+    alerta_label.pack(pady=20)
 
-    canvas.draw()
+    fechar_button = ctk.CTkButton(popup, text="Fechar", command=popup.destroy)
+    fechar_button.pack(pady=10)
+
+    popup.after(5000, popup.destroy)  # Fecha o pop-up após 5 segundos
+
+
+# Função para adicionar som aos alertas
+def tocar_alerta_sonoro():
+    winsound.Beep(1000, 1000)  # Toca um som de 1000Hz por 1 segundo
 
 # Funções dos botões da tela principal
 def ligar_sistema():
@@ -175,68 +197,31 @@ def fechar_relatorio(window):
     window.grab_release()  # Libera o bloqueio na janela principal
     window.destroy()
 
-def ragos_furos():
-    ragos_furos_window = ctk.CTkToplevel(root)
-    ragos_furos_window.title("Ragos e Furos")
-    ragos_furos_window.geometry(TAMANHO_TELA)
+# Função para transição suave de telas
+def animar_troca_tela(atual, nova):
+    # Faz a tela atual desaparecer
+    for i in range(100, 0, -1):
+        atual.attributes("-alpha", i / 100)
+        atual.update()
+        time.sleep(0.02)
     
-    # Configura para garantir que a janela de "Ragos e Furos" fique no topo
-    ragos_furos_window.lift()
-    ragos_furos_window.attributes('-topmost', True)
-    ragos_furos_window.focus_force()
-    ragos_furos_window.grab_set()
-
-    titulo_label = ctk.CTkLabel(ragos_furos_window, text="Informações sobre Ragos e Furos", font=("Helvetica", 16, "bold"))
-    titulo_label.pack(pady=20)
-
-    info_label = ctk.CTkLabel(ragos_furos_window, text="Aqui serão exibidos dados sobre Ragos e Furos.", font=("Helvetica", 12))
-    info_label.pack(pady=10)
-
-    fechar_button = ctk.CTkButton(ragos_furos_window, text="Fechar", command=ragos_furos_window.destroy)
-    fechar_button.pack(pady=20)
-
-def desalinhamento():
-    desalinhamento_window = ctk.CTkToplevel(root)
-    desalinhamento_window.title("Desalinhamento")
-    desalinhamento_window.geometry(TAMANHO_TELA)
+    # Fecha a tela atual
+    atual.destroy()
     
-    # Configura para garantir que a janela de "Desalinhamento" fique no topo
-    desalinhamento_window.lift()
-    desalinhamento_window.attributes('-topmost', True)
-    desalinhamento_window.focus_force()
-    desalinhamento_window.grab_set()
+    # Exibe a nova tela
+    nova.attributes("-alpha", 0)
+    nova.deiconify()  # Torna a nova janela visível
+    for i in range(0, 101):
+        nova.attributes("-alpha", i / 100)
+        nova.update()
+        time.sleep(0.02)
 
-    titulo_label = ctk.CTkLabel(desalinhamento_window, text="Informações sobre Desalinhamento", font=("Helvetica", 16, "bold"))
-    titulo_label.pack(pady=20)
+# Efeito de hover nos botões
+def on_hover_button(button):
+    button.configure(fg_color="lightblue")  # Mudando a cor de fundo quando o mouse passa sobre o botão
 
-    info_label = ctk.CTkLabel(desalinhamento_window, text="Aqui serão exibidos dados sobre Desalinhamento.", font=("Helvetica", 12))
-    info_label.pack(pady=10)
-
-    fechar_button = ctk.CTkButton(desalinhamento_window, text="Fechar", command=desalinhamento_window.destroy)
-    fechar_button.pack(pady=20)
-
-def abrir_graficos():
-    grafico_window = ctk.CTkToplevel(root)
-    grafico_window.title("Gráficos de Dados Históricos")
-    grafico_window.geometry(TAMANHO_TELA)
-
-    # Configura para garantir que a janela de "Gráficos" fique no topo
-    grafico_window.lift()
-    grafico_window.attributes('-topmost', True)
-    grafico_window.focus_force()
-    grafico_window.grab_set()
-
-    fig, axs = plt.subplots(3, 1, figsize=(8, 6))
-    fig.tight_layout(pad=4.0)
-
-    canvas = FigureCanvasTkAgg(fig, grafico_window)
-    canvas.get_tk_widget().pack(fill="both", expand=True)
-
-    def loop_atualizacao():
-        atualizar_graficos(axs, canvas)
-        grafico_window.after(1000, loop_atualizacao)
-
-    loop_atualizacao()
+def on_leave_button(button):
+    button.configure(fg_color="blue")  # Retornando a cor de fundo original quando o mouse sai
 
 # Tela de Login
 def criar_tela_login():
@@ -253,7 +238,8 @@ def criar_tela_login():
 
         if usuario == USUARIO and senha == SENHA:
             login_window.destroy()
-            criar_tela_principal()
+            nova_tela = criar_tela_principal()
+            animar_troca_tela(login_window, nova_tela)
         else:
             mensagem_label.configure(text="Usuário ou senha incorretos!", text_color="red")
 
@@ -270,66 +256,63 @@ def criar_tela_login():
     senha_entry = ctk.CTkEntry(login_window, placeholder_text="Digite sua senha", show="*")
     senha_entry.pack(pady=5)
 
-    botao_login = ctk.CTkButton(login_window, text="Entrar", command=autenticar)
-    botao_login.pack(pady=20)
-
     mensagem_label = ctk.CTkLabel(login_window, text="", font=("Helvetica", 10))
-    mensagem_label.pack()
+    mensagem_label.pack(pady=5)
+
+    login_button = ctk.CTkButton(login_window, text="Login", command=autenticar)
+    login_button.pack(pady=20)
+
+    # Adiciona efeito de hover no botão de login
+    login_button.bind("<Enter>", lambda event: on_hover_button(login_button))
+    login_button.bind("<Leave>", lambda event: on_leave_button(login_button))
 
     login_window.mainloop()
 
 # Tela Principal
 def criar_tela_principal():
-    global root, status_label, ultima_acao_label, alerta_label
-    root = ctk.CTk()
-    root.title("Sistema Supervisório - Correia Transportadora")
+    global root, alerta_label, ultima_acao_label, status_label
+    root = ctk.CTk() 
+    root.title("Tela Principal")
     root.geometry(TAMANHO_TELA)
     root.resizable(False, False)
 
-    adicionar_logo(root)  # Adiciona o logo na tela principal
+    adicionar_logo(root)
 
-    titulo_label = ctk.CTkLabel(root, text="Controle Da Correia Transportadora", font=("Helvetica", 16, "bold"))
-    titulo_label.pack(pady=10)
-
-    alerta_label = ctk.CTkLabel(root, text="Sistema estável.", font=("Helvetica", 12), text_color="green")
+    alerta_label = ctk.CTkLabel(root, text="Sistema estável.", text_color="white", fg_color="green", font=("Helvetica", 14))
     alerta_label.pack(pady=10)
 
-    frame_superior = ctk.CTkFrame(root)
-    frame_superior.pack(pady=10)
+    status_label = ctk.CTkLabel(root, text="Status: Desligado", text_color="red", font=("Helvetica", 14))
+    status_label.pack(pady=5)
 
-    comando_frame = ctk.CTkFrame(frame_superior)
-    comando_frame.pack(side="left", padx=20)
+    ultima_acao_label = ctk.CTkLabel(root, text="Última ação tomada: Nenhuma", font=("Helvetica", 12))
+    ultima_acao_label.pack(pady=10)
 
-    botao_ligar = ctk.CTkButton(comando_frame, text="Ligar", font=("Helvetica", 12), fg_color="green", command=ligar_sistema)
-    botao_ligar.pack(pady=5)
+    # Botões da tela principal
+    ligar_button = ctk.CTkButton(root, text="Ligar Sistema", command=ligar_sistema)
+    ligar_button.pack(pady=5)
 
-    botao_desligar = ctk.CTkButton(comando_frame, text="Desligar", font=("Helvetica", 12), fg_color="red", command=desligar_sistema)
-    botao_desligar.pack(pady=5)
+    desligar_button = ctk.CTkButton(root, text="Desligar Sistema", command=desligar_sistema)
+    desligar_button.pack(pady=5)
 
-    ultima_acao_label = ctk.CTkLabel(comando_frame, text="Última ação tomada: -", font=("Helvetica", 10))
-    ultima_acao_label.pack(pady=5)
+    gerar_relatorio_button = ctk.CTkButton(root, text="Gerar Relatório", command=gerar_relatorio)
+    gerar_relatorio_button.pack(pady=5)
 
-    status_frame = ctk.CTkFrame(frame_superior)
-    status_frame.pack(side="left", padx=20)
+    # Adiciona efeitos de hover nos botões
+    ligar_button.bind("<Enter>", lambda event: on_hover_button(ligar_button))
+    ligar_button.bind("<Leave>", lambda event: on_leave_button(ligar_button))
 
-    status_label = ctk.CTkLabel(status_frame, text="Status: Desligado", font=("Helvetica", 12), text_color="red")
-    status_label.pack(pady=10)
+    desligar_button.bind("<Enter>", lambda event: on_hover_button(desligar_button))
+    desligar_button.bind("<Leave>", lambda event: on_leave_button(desligar_button))
 
-    botao_grafico = ctk.CTkButton(root, text="Exibir Gráficos", font=("Helvetica", 12), command=abrir_graficos)
-    botao_grafico.pack(pady=20)
+    gerar_relatorio_button.bind("<Enter>", lambda event: on_hover_button(gerar_relatorio_button))
+    gerar_relatorio_button.bind("<Leave>", lambda event: on_leave_button(gerar_relatorio_button))
 
-    botao_relatorio = ctk.CTkButton(root, text="Gerar Relatório", font=("Helvetica", 12), command=gerar_relatorio)
-    botao_relatorio.pack(pady=20)
+    # Atualiza os dados e alerta a cada segundo
+    root.after(1000, atualizar_dados_historicos)
 
-    botao_ragos_furos = ctk.CTkButton(root, text="Ragos e Furos", font=("Helvetica", 12), command=ragos_furos)
-    botao_ragos_furos.pack(pady=20)
-
-    botao_desalinhamento = ctk.CTkButton(root, text="Desalinhamento", font=("Helvetica", 12), command=desalinhamento)
-    botao_desalinhamento.pack(pady=20)
-
-    atualizar_dados_historicos()
     root.mainloop()
 
 # Inicia a tela de login
 criar_tela_login()
+
 
