@@ -23,6 +23,9 @@ historico_velocidade = [0]
 historico_desgaste = [0]
 historico_carga = [0]
 
+# Tamanho padronizado para as telas
+TAMANHO_TELA = "800x600"
+
 # Função para adicionar o logo
 def adicionar_logo(tela):
     frame_logo = ctk.CTkFrame(tela)
@@ -111,7 +114,7 @@ def desligar_sistema():
 def gerar_relatorio():
     relatorio_window = ctk.CTkToplevel(root)
     relatorio_window.title("Relatório")
-    relatorio_window.geometry("600x400")
+    relatorio_window.geometry(TAMANHO_TELA)
     relatorio_window.resizable(False, False)
     
     # Configura para garantir que a janela de "Relatório" fique no topo
@@ -175,7 +178,7 @@ def fechar_relatorio(window):
 def ragos_furos():
     ragos_furos_window = ctk.CTkToplevel(root)
     ragos_furos_window.title("Ragos e Furos")
-    ragos_furos_window.geometry("400x300")
+    ragos_furos_window.geometry(TAMANHO_TELA)
     
     # Configura para garantir que a janela de "Ragos e Furos" fique no topo
     ragos_furos_window.lift()
@@ -195,7 +198,7 @@ def ragos_furos():
 def desalinhamento():
     desalinhamento_window = ctk.CTkToplevel(root)
     desalinhamento_window.title("Desalinhamento")
-    desalinhamento_window.geometry("400x300")
+    desalinhamento_window.geometry(TAMANHO_TELA)
     
     # Configura para garantir que a janela de "Desalinhamento" fique no topo
     desalinhamento_window.lift()
@@ -215,7 +218,7 @@ def desalinhamento():
 def abrir_graficos():
     grafico_window = ctk.CTkToplevel(root)
     grafico_window.title("Gráficos de Dados Históricos")
-    grafico_window.geometry("800x600")
+    grafico_window.geometry(TAMANHO_TELA)
 
     # Configura para garantir que a janela de "Gráficos" fique no topo
     grafico_window.lift()
@@ -239,7 +242,7 @@ def abrir_graficos():
 def criar_tela_login():
     login_window = ctk.CTk()
     login_window.title("Login")
-    login_window.geometry("800x600")
+    login_window.geometry(TAMANHO_TELA)
     login_window.resizable(False, False)
 
     adicionar_logo(login_window)  # Adiciona o logo na tela de login
@@ -280,7 +283,7 @@ def criar_tela_principal():
     global root, status_label, ultima_acao_label, alerta_label
     root = ctk.CTk()
     root.title("Sistema Supervisório - Correia Transportadora")
-    root.geometry("900x700")
+    root.geometry(TAMANHO_TELA)
     root.resizable(False, False)
 
     adicionar_logo(root)  # Adiciona o logo na tela principal
@@ -329,3 +332,4 @@ def criar_tela_principal():
 
 # Inicia a tela de login
 criar_tela_login()
+
