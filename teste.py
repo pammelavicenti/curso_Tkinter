@@ -6,6 +6,7 @@ import random
 import os
 import csv
 import pyperclip  # Biblioteca para copiar para a área de transferência
+import cv2  # Biblioteca OpenCV para captura de vídeo
 
 # Configuração do tema customtkinter
 ctk.set_appearance_mode("light")
@@ -218,114 +219,5 @@ def abrir_graficos():
     grafico_window.geometry("800x600")
 
     # Configura para garantir que a janela de "Gráficos" fique no topo
-    grafico_window.lift()
-    grafico_window.attributes('-topmost', True)
-    grafico_window.focus_force()
-    grafico_window.grab_set()
+    graf
 
-    fig, axs = plt.subplots(3, 1, figsize=(8, 6))
-    fig.tight_layout(pad=4.0)
-
-    canvas = FigureCanvasTkAgg(fig, grafico_window)
-    canvas.get_tk_widget().pack(fill="both", expand=True)
-
-    def loop_atualizacao():
-        atualizar_graficos(axs, canvas)
-        grafico_window.after(1000, loop_atualizacao)
-
-    loop_atualizacao()
-
-# Tela de Login
-def criar_tela_login():
-    login_window = ctk.CTk()
-    login_window.title("Login")
-    login_window.geometry("800x600")
-    login_window.resizable(False, False)
-
-    adicionar_logo(login_window)  # Adiciona o logo na tela de login
-
-    def autenticar():
-        usuario = usuario_entry.get()
-        senha = senha_entry.get()
-
-        if usuario == USUARIO and senha == SENHA:
-            login_window.destroy()
-            criar_tela_principal()
-        else:
-            mensagem_label.configure(text="Usuário ou senha incorretos!", text_color="red")
-
-    titulo_label = ctk.CTkLabel(login_window, text="Sistema Supervisório", font=("Helvetica", 16, "bold"))
-    titulo_label.pack(pady=20)
-
-    usuario_label = ctk.CTkLabel(login_window, text="Usuário:", font=("Helvetica", 12))
-    usuario_label.pack(pady=5)
-    usuario_entry = ctk.CTkEntry(login_window, placeholder_text="Digite seu usuário")
-    usuario_entry.pack(pady=5)
-
-    senha_label = ctk.CTkLabel(login_window, text="Senha:", font=("Helvetica", 12))
-    senha_label.pack(pady=5)
-    senha_entry = ctk.CTkEntry(login_window, placeholder_text="Digite sua senha", show="*")
-    senha_entry.pack(pady=5)
-
-    botao_login = ctk.CTkButton(login_window, text="Entrar", command=autenticar)
-    botao_login.pack(pady=20)
-
-    mensagem_label = ctk.CTkLabel(login_window, text="", font=("Helvetica", 10))
-    mensagem_label.pack()
-
-    login_window.mainloop()
-
-# Tela Principal
-def criar_tela_principal():
-    global root, status_label, ultima_acao_label, alerta_label
-    root = ctk.CTk()
-    root.title("Sistema Supervisório - Correia Transportadora")
-    root.geometry("900x700")
-    root.resizable(False, False)
-
-    adicionar_logo(root)  # Adiciona o logo na tela principal
-
-    titulo_label = ctk.CTkLabel(root, text="Controle Da Correia Transportadora", font=("Helvetica", 16, "bold"))
-    titulo_label.pack(pady=10)
-
-    alerta_label = ctk.CTkLabel(root, text="Sistema estável.", font=("Helvetica", 12), text_color="green")
-    alerta_label.pack(pady=10)
-
-    frame_superior = ctk.CTkFrame(root)
-    frame_superior.pack(pady=10)
-
-    comando_frame = ctk.CTkFrame(frame_superior)
-    comando_frame.pack(side="left", padx=20)
-
-    botao_ligar = ctk.CTkButton(comando_frame, text="Ligar", font=("Helvetica", 12), fg_color="green", command=ligar_sistema)
-    botao_ligar.pack(pady=5)
-
-    botao_desligar = ctk.CTkButton(comando_frame, text="Desligar", font=("Helvetica", 12), fg_color="red", command=desligar_sistema)
-    botao_desligar.pack(pady=5)
-
-    ultima_acao_label = ctk.CTkLabel(comando_frame, text="Última ação tomada: -", font=("Helvetica", 10))
-    ultima_acao_label.pack(pady=5)
-
-    status_frame = ctk.CTkFrame(frame_superior)
-    status_frame.pack(side="left", padx=20)
-
-    status_label = ctk.CTkLabel(status_frame, text="Status: Desligado", font=("Helvetica", 12), text_color="red")
-    status_label.pack(pady=10)
-
-    botao_grafico = ctk.CTkButton(root, text="Exibir Gráficos", font=("Helvetica", 12), command=abrir_graficos)
-    botao_grafico.pack(pady=20)
-
-    botao_relatorio = ctk.CTkButton(root, text="Gerar Relatório", font=("Helvetica", 12), command=gerar_relatorio)
-    botao_relatorio.pack(pady=20)
-
-    botao_ragos_furos = ctk.CTkButton(root, text="Ragos e Furos", font=("Helvetica", 12), command=ragos_furos)
-    botao_ragos_furos.pack(pady=20)
-
-    botao_desalinhamento = ctk.CTkButton(root, text="Desalinhamento", font=("Helvetica", 12), command=desalinhamento)
-    botao_desalinhamento.pack(pady=20)
-
-    atualizar_dados_historicos()
-    root.mainloop()
-
-# Inicia a tela de login
-criar_tela_login()
