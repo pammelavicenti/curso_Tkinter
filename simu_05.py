@@ -50,7 +50,7 @@ def exibir_video():
     video_window.title("Monitoramento por Vídeo")
     video_window.geometry("800x600")
     
-    label_video = ctk.CTkLabel(video_window, text="Abrindo câmera...", font=("Helvetica", 12))
+    label_video = ctk.CTkLabel(video_window, font=("Helvetica", 12))
     label_video.pack()
 
     cap = cv2.VideoCapture(0)  # Use 0 para webcam padrão
@@ -66,17 +66,18 @@ def exibir_video():
             label_video.imgtk = imgtk
             video_window.after(10, atualizar_frame)
         else:
-            cap.release()
-            video_window.destroy()
-
-    atualizar_frame()
+            fechar_video()
 
     def fechar_video():
         cap.release()
         video_window.destroy()
 
+    atualizar_frame()
+
     botao_fechar = ctk.CTkButton(video_window, text="Fechar", command=fechar_video)
     botao_fechar.pack(pady=10)
+
+    video_window.protocol("WM_DELETE_WINDOW", fechar_video)  # Fecha corretamente ao clicar no X
 
 
 # Função para atualizar dados históricos
@@ -362,7 +363,6 @@ def criar_tela_principal():
 
     botao_video = ctk.CTkButton(root, text="Monitoramento por Vídeo", font=("Helvetica", 12), command=exibir_video)
     botao_video.pack(pady=20)
-
 
     atualizar_dados_historicos()
     root.mainloop()
