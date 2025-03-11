@@ -7,6 +7,8 @@ import os
 import csv
 import cv2
 import pyperclip  # Biblioteca para copiar para a área de transferência
+import math
+from ultralytics import YOLO
 
 # Configuração do tema customtkinter
 ctk.set_appearance_mode("light")
@@ -23,6 +25,10 @@ SENHA = "1234"
 historico_velocidade = [0]
 historico_desgaste = [0]
 historico_carga = [0]
+
+# Carrega o modelo YOLO treinado
+model = YOLO("C:/Users/pamme/Documents/curso_Tkinter/dataset_eu/train10/weights/best.pt")
+
 
 # Função para adicionar o logo
 def adicionar_logo(tela):
@@ -55,10 +61,57 @@ def exibir_video():
 
     cap = cv2.VideoCapture(0)  # Use 0 para webcam padrão
 
+    # Definir valores conhecidos para cálculo das dimensões
+    D = 30  # Distância da câmera ao objeto em cm
+    FOV = 60  # Campo de visão em graus
+    L_real = 2 * D * math.tan(math.radians(FOV / 2))
+    L_imagem = 640  # Largura da imagem capturada pela câmera
+    cm_por_pixel = L_real / L_imagem
+
     def atualizar_frame():
         ret, frame = cap.read()
         if ret:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # Realiza a detecção de objetos no frame capturado
+            results = model(frame)
+
+            # Obtém o frame com as caixas desenhadas
+            annotated_frame = results[0].plot()
+
+            # Percorre todas as detecções
+            for r in results:
+                for box in r.boxes:
+                    # Coordenadas da caixa delimitadora (x1, y1, x2, y2)
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])
+
+                    # Calcula a largura e altura da bounding box em pixels
+                    largura_px = x2 - x1
+                    altura_px = y2 - y1
+
+                    # Converte para centímetros
+                    largura_cm = largura_px * cm_por_pixel
+                    altura_cm = altura_px * cm_por_pixel
+
+                    # Obtém o nome da classe detectada
+                    class_id = int(box.cls[0])
+                    class_name = model.names[class_id]
+
+                    # Define as posições para o texto
+                    text_pos = (x1, y1 - 10)
+                    name_pos = (x1, y1 + 15)
+
+                    # Exibe largura e altura (em cm) acima do nome do objeto
+                    cv2.putText(
+                        annotated_frame, 
+                        f"L: {largura_cm:.1f}cm H: {altura_cm:.1f}cm", 
+                        (x1, y1 - 20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 
+                        0.5, (0, 255, 0), 1
+                    )
+
+                    # Exibe largura e altura no terminal
+                    print(f"Objeto detectado: {class_name} - Largura: {largura_cm:.1f} cm, Altura: {altura_cm:.1f} cm")
+
+            frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
             frame = cv2.resize(frame, (640, 480))
             img = Image.fromarray(frame)
             imgtk = ImageTk.PhotoImage(image=img)
