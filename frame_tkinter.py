@@ -1,6 +1,6 @@
 ''' Criando frames na Tela usando o customtkinter'''
 
-import customtkinter as ctk
+import customtkinter as ctk # Importando a biblioteca 
 import cv2
 from PIL import Image, ImageTk
 
@@ -16,16 +16,16 @@ janela.minsize(width=500, height=300)
 janela.resizable(width=False, height=False)
 
 # Criando e posicionando corretamente os Frames
-frame1 = ctk.CTkFrame(master=janela, width=350, height=200, fg_color="white")
+frame1 = ctk.CTkFrame(master=janela, width=350, height=200, fg_color="white", corner_radius=20)
 frame1.place(x=40, y=80)  # Agora a variável frame1 contém o frame corretamente
 
-frame2 = ctk.CTkFrame(master=janela, width=350, height=200, fg_color="white")
+frame2 = ctk.CTkFrame(master=janela, width=350, height=200, fg_color="white", corner_radius=20)
 frame2.place(x=410, y=80)
 
-frame3 = ctk.CTkFrame(master=janela, width=350, height=200, fg_color="white")
+frame3 = ctk.CTkFrame(master=janela, width=350, height=200, fg_color="white", corner_radius=20)
 frame3.place(x=40, y=300)
 
-frame4 = ctk.CTkFrame(master=janela, width=350, height=200, fg_color="white")
+frame4 = ctk.CTkFrame(master=janela, width=350, height=200, fg_color="white", corner_radius=20)
 frame4.place(x=410, y=300)
 
 # Criando a Label dentro do frame1 onde a webcam será exibida
