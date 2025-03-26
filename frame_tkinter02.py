@@ -1,13 +1,13 @@
 ''' Criando Tabs (abas) usando o customtkinter'''
 
 import customtkinter as ctk # Importando a biblioteca 
-import cv2
+import cv2 
+
+
+# Configurando a janela
 from PIL import Image, ImageTk
 
-janela = ctk.CTk() # Criar a nossa janela
-
-
-# Configurando a janela principal
+janela = ctk.CTk() # Criar principal
 janela.title("app teste")
 janela.geometry("800x700")
 janela.maxsize(width=900, height=550)
@@ -32,6 +32,14 @@ tabview = ctk.CTkTabview(janela, width=400, corner_radius=20, border_color="blac
 tabview.pack() # pack serve para centralizar
 tabview.add("Ligar") 
 tabview.add("Desligar") 
+
+# Adicionando elementos na nossa tab 
+text = ctk.CTkLabel(tabview.tab("Ligar"), text="Acionamento para Ligar")
+text.pack() # pack serve para centralizar
+
+text = ctk.CTkLabel(tabview.tab("Desligar"), text="Acionamento para Desligar")
+text.pack()
+
 
 # Criando a Label dentro do frame1 onde a webcam será exibida
 '''video_label = ctk.CTkLabel(frame1, text="", width=350, height=200)
