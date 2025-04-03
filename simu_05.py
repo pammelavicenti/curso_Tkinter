@@ -408,13 +408,10 @@ def criar_tela_principal():
     botao_relatorio = ctk.CTkButton(root, text="Gerar Relatório", font=("Helvetica", 12), command=gerar_relatorio)
     botao_relatorio.pack(pady=20)
 
-    botao_ragos_furos = ctk.CTkButton(root, text="Ragos e Furos", font=("Helvetica", 12), command=ragos_furos)
-    botao_ragos_furos.pack(pady=20)
-
     botao_desalinhamento = ctk.CTkButton(root, text="Desalinhamento", font=("Helvetica", 12), command=desalinhamento)
     botao_desalinhamento.pack(pady=20)
 
-    botao_video = ctk.CTkButton(root, text="Monitoramento por Vídeo", font=("Helvetica", 12), command=exibir_video)
+    botao_video = ctk.CTkButton(root, text="Rasgos e Furos", font=("Helvetica", 12), command=exibir_video)
     botao_video.pack(pady=20)
 
     atualizar_dados_historicos()
