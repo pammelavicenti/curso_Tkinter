@@ -1,33 +1,122 @@
-import customtkinter as ctk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import os 
+import customtkinter as ctk  
+import cv2
+import math
 from PIL import Image, ImageTk
-import matplotlib.pyplot as plt
-import random
-import os
-import csv
-import pyperclip  # Biblioteca para copiar para a área de transferência
-import cv2  # Biblioteca OpenCV para captura de vídeo
-
-# Configuração do tema customtkinter
-ctk.set_appearance_mode("light")
-ctk.set_default_color_theme("blue")
+from ultralytics import YOLO
 
 # Caminho para o logotipo
 image_path = r"C:\Users\pamme\OneDrive\Documentos\IFES.jpg"
 
-# Usuário e senha para autenticação
-USUARIO = "admin"
-SENHA = "1234"
+# Carrega o modelo YOLO treinado
+model = YOLO("C:/Users/pamme/Documents/curso_Tkinter/dataset_eu/train10/weights/best.pt")
 
-# Dados históricos simulados
-historico_velocidade = [0]
-historico_desgaste = [0]
-historico_carga = [0]
+# Criar a janela principal
+janela = ctk.CTk()
+janela.title("Sistema Supervisório - Correia Transportadora")
+janela.state("zoomed")  # Maximiza a janela
+janela.resizable(True, True)
 
-# Função para adicionar o logo
+# Novo tamanho dos frames
+largura_frame = 500
+altura_frame = 300
+
+# Novas posições para centralizar os frames (ajustadas para o novo tamanho)
+posicoes = [
+    (0.30, 0.30),  # Frame 1
+    (0.70, 0.30),  # Frame 2
+    (0.30, 0.75),  # Frame 3
+    (0.70, 0.75)   # Frame 4 (com YOLO)
+]
+
+frames = []
+titulos = ["Operação Da Correia", "Desalinhamento", "Posição da Correia", "Rasgos e Furos"]
+
+for i, (relx, rely) in enumerate(posicoes):
+    frame = ctk.CTkFrame(master=janela, width=largura_frame, height=altura_frame, 
+                         fg_color="white", border_width=3, border_color="black", corner_radius=20)
+    frame.place(relx=relx, rely=rely, anchor="center")
+    frames.append(frame)
+
+    titulo = ctk.CTkLabel(frame, text=titulos[i], font=("Arial", 16, "bold"), text_color="black")
+    titulo.place(x=10, y=10)
+
+# Webcam Labels (ajustados para o novo tamanho)
+video_label = ctk.CTkLabel(frames[1], text="", width=480, height=260, fg_color="white")
+video_label.place(x=10, y=30)  
+
+video_label4 = ctk.CTkLabel(frames[3], text="", width=480, height=260, fg_color="white")
+video_label4.place(x=10, y=30)
+
+# Captura da webcam
+cap = cv2.VideoCapture(0)
+executando_yolo = False  # Flag para controlar exibição YOLO
+
+def exibir_frame_simples():
+    ret, frame = cap.read()
+    if ret:
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.resize(frame, (480, 260))
+        img = ImageTk.PhotoImage(Image.fromarray(frame))
+        video_label.configure(image=img)
+        video_label.image = img
+    janela.after(10, exibir_frame_simples)
+
+# Exibir vídeo com YOLO no Frame 4
+def exibir_video_frame4():
+    if not executando_yolo:
+        return
+
+    ret, frame = cap.read()
+    if ret:
+        results = model(frame)
+        annotated_frame = results[0].plot()
+
+        D = 30
+        FOV = 60
+        L_real = 2 * D * math.tan(math.radians(FOV / 2))
+        L_imagem = 640
+        cm_por_pixel = L_real / L_imagem
+
+        for r in results:
+            for box in r.boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                largura_px = x2 - x1
+                altura_px = y2 - y1
+                largura_cm = largura_px * cm_por_pixel
+                altura_cm = altura_px * cm_por_pixel
+                class_id = int(box.cls[0])
+                class_name = model.names[class_id]
+
+                cv2.putText(
+                    annotated_frame,
+                    f"L: {largura_cm:.1f}cm H: {altura_cm:.1f}cm",
+                    (x1, y1 - 20),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, (0, 255, 0), 1
+                )
+
+        frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+        frame = cv2.resize(frame, (480, 260))
+        img = ImageTk.PhotoImage(Image.fromarray(frame))
+
+        video_label4.configure(image=img)
+        video_label4.image = img
+
+    janela.after(10, exibir_video_frame4)
+
+# Fecha a aplicação corretamente
+def fechar():
+    cap.release()
+    cv2.destroyAllWindows()
+    janela.destroy()
+
+janela.protocol("WM_DELETE_WINDOW", fechar)
+
+# Logo no topo
 def adicionar_logo(tela):
     frame_logo = ctk.CTkFrame(tela)
-    frame_logo.pack(fill="x", pady=2, anchor="nw")
+    frame_logo.pack(fill="x", pady=0, anchor="nw")
 
     try:
         if not os.path.exists(image_path):
@@ -44,180 +133,39 @@ def adicionar_logo(tela):
         logo_label = ctk.CTkLabel(frame_logo, text="Logo não encontrada", font=("Helvetica", 10), text_color="red")
         logo_label.pack(anchor="nw")
 
-# Função para atualizar dados históricos
-def atualizar_dados_historicos():
-    historico_velocidade.append(random.randint(1, 10))
-    historico_desgaste.append(random.randint(0, 100))
-    historico_carga.append(random.randint(100, 1000))
+adicionar_logo(janela)
 
-    if len(historico_velocidade) > 20:
-        historico_velocidade.pop(0)
-        historico_desgaste.pop(0)
-        historico_carga.pop(0)
+# Titulo Principal
+titulo_principal = ctk.CTkLabel(janela, text="GAIN - GAINTECH - ROBOTECH", 
+                                font=("Arial", 24, "bold"), text_color="black")
+titulo_principal.place(x=560, y=10)
 
-    verificar_alertas()
-    root.after(1000, atualizar_dados_historicos)
+# Titulo nome dos integrantes
+titulo_nomes = ctk.CTkLabel(janela, text="Desenvolvedores: Pammela V. Ribeiro - Amanda - Diego ", 
+                                font=("Arial", 22, "bold"), text_color="black")
+titulo_nomes.place(x=460, y=50)
 
-# Função para verificar alertas
-def verificar_alertas():
-    desgaste_atual = historico_desgaste[-1]
-    carga_atual = historico_carga[-1]
+# =====================
+# BOTÕES DENTRO DO FRAME 1
+# =====================
+frame_botoes = ctk.CTkFrame(frames[0], fg_color="transparent")
+frame_botoes.place(relx=0.5, rely=0.6, anchor="center")
 
-    # Verifica desgaste
-    if desgaste_atual > 90:
-        alerta_label.configure(
-            text=f"ALERTA: Desgaste crítico ({desgaste_atual}%)!",
-            text_color="orange"
-        )
-        print(f"ALERTA: Desgaste crítico ({desgaste_atual}%)!")
+botao_ligar = ctk.CTkButton(frame_botoes, text="Ligar", font=("Helvetica", 12), fg_color="green", 
+                            command=lambda: [globals().__setitem__('executando_yolo', True), exibir_video_frame4()])
+botao_ligar.pack(pady=5, fill="x")
 
-    # Verifica carga
-    elif carga_atual > 900:
-        alerta_label.configure(
-            text=f"ALERTA: Carga excessiva ({carga_atual} kg)!",
-            text_color="red"
-        )
-        print(f"ALERTA: Carga excessiva ({carga_atual} kg)!")
-    else:
-        alerta_label.configure(text="Sistema estável.", text_color="green")
+botao_desligar = ctk.CTkButton(frame_botoes, text="Desligar", font=("Helvetica", 12), fg_color="red", 
+                               command=lambda: globals().__setitem__('executando_yolo', False))
+botao_desligar.pack(pady=5, fill="x")
 
-# Função para atualizar gráficos
-def atualizar_graficos(axs, canvas):
-    axs[0].clear()
-    axs[0].plot(historico_velocidade, label="Velocidade (m/s)", color="blue")
-    axs[0].set_title("Velocidade")
-    axs[0].legend()
+botao_historico = ctk.CTkButton(frame_botoes, text="Histórico", font=("Helvetica", 12), fg_color="blue", 
+                                command=lambda: print("Visualizar Histórico"))
+botao_historico.pack(pady=5, fill="x")
 
-    axs[1].clear()
-    axs[1].plot(historico_desgaste, label="Desgaste (%)", color="orange")
-    axs[1].set_title("Níveis de Desgaste")
-    axs[1].legend()
+# Iniciar exibições
+exibir_frame_simples()
 
-    axs[2].clear()
-    axs[2].plot(historico_carga, label="Carga (kg)", color="green")
-    axs[2].set_title("Carga Transportada")
-    axs[2].legend()
-
-    canvas.draw()
-
-# Funções dos botões da tela principal
-def ligar_sistema():
-    status_label.configure(text="Status: Ligado", text_color="green")
-    ultima_acao_label.configure(text="Última ação tomada: Sistema Ligado")
-
-def desligar_sistema():
-    status_label.configure(text="Status: Desligado", text_color="red")
-    ultima_acao_label.configure(text="Última ação tomada: Sistema Desligado")
-
-def gerar_relatorio():
-    relatorio_window = ctk.CTkToplevel(root)
-    relatorio_window.title("Relatório")
-    relatorio_window.geometry("600x400")
-    relatorio_window.resizable(False, False)
-    
-    # Configura para garantir que a janela de "Relatório" fique no topo
-    relatorio_window.lift()
-    relatorio_window.attributes('-topmost', True)
-    relatorio_window.focus_force()
-    relatorio_window.grab_set()
-
-    # Conteúdo do relatório
-    titulo_label = ctk.CTkLabel(relatorio_window, text="Relatório do Sistema", font=("Helvetica", 16, "bold"))
-    titulo_label.pack(pady=10)
-
-    dados_relatorio = (
-        f"Velocidades: {historico_velocidade}\n"
-        f"Desgastes: {historico_desgaste}\n"
-        f"Cargas: {historico_carga}\n"
-    )
-
-    historico_label = ctk.CTkLabel(
-        relatorio_window,
-        text=dados_relatorio,
-        font=("Helvetica", 12),
-        justify="left"
-    )
-    historico_label.pack(pady=10)
-
-    # Função para copiar os dados para a área de transferência
-    def copiar_dados():
-        pyperclip.copy(dados_relatorio)
-        mensagem_label.configure(text="Dados copiados para a área de transferência!", text_color="green")
-
-    # Função para exportar os dados para um arquivo CSV
-    def exportar_csv():
-        caminho_arquivo = "relatorio.csv"
-        with open(caminho_arquivo, "w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(["Velocidade", "Desgaste", "Carga"])
-            for i in range(len(historico_velocidade)):
-                writer.writerow([historico_velocidade[i], historico_desgaste[i], historico_carga[i]])
-
-        mensagem_label.configure(text=f"Relatório exportado para {caminho_arquivo}", text_color="green")
-
-    # Botões de copiar e exportar
-    botao_copiar = ctk.CTkButton(relatorio_window, text="Copiar Dados", command=copiar_dados)
-    botao_copiar.pack(pady=5)
-
-    botao_exportar = ctk.CTkButton(relatorio_window, text="Exportar para CSV", command=exportar_csv)
-    botao_exportar.pack(pady=5)
-
-    fechar_button = ctk.CTkButton(relatorio_window, text="Fechar", command=lambda: fechar_relatorio(relatorio_window))
-    fechar_button.pack(pady=20)
-
-    # Label para mensagens
-    mensagem_label = ctk.CTkLabel(relatorio_window, text="", font=("Helvetica", 10))
-    mensagem_label.pack()
-
-def fechar_relatorio(window):
-    window.grab_release()  # Libera o bloqueio na janela principal
-    window.destroy()
-
-def ragos_furos():
-    ragos_furos_window = ctk.CTkToplevel(root)
-    ragos_furos_window.title("Ragos e Furos")
-    ragos_furos_window.geometry("400x300")
-    
-    # Configura para garantir que a janela de "Ragos e Furos" fique no topo
-    ragos_furos_window.lift()
-    ragos_furos_window.attributes('-topmost', True)
-    ragos_furos_window.focus_force()
-    ragos_furos_window.grab_set()
-
-    titulo_label = ctk.CTkLabel(ragos_furos_window, text="Informações sobre Ragos e Furos", font=("Helvetica", 16, "bold"))
-    titulo_label.pack(pady=20)
-
-    info_label = ctk.CTkLabel(ragos_furos_window, text="Aqui serão exibidos dados sobre Ragos e Furos.", font=("Helvetica", 12))
-    info_label.pack(pady=10)
-
-    fechar_button = ctk.CTkButton(ragos_furos_window, text="Fechar", command=ragos_furos_window.destroy)
-    fechar_button.pack(pady=20)
-
-def desalinhamento():
-    desalinhamento_window = ctk.CTkToplevel(root)
-    desalinhamento_window.title("Desalinhamento")
-    desalinhamento_window.geometry("400x300")
-    
-    # Configura para garantir que a janela de "Desalinhamento" fique no topo
-    desalinhamento_window.lift()
-    desalinhamento_window.attributes('-topmost', True)
-    desalinhamento_window.focus_force()
-    desalinhamento_window.grab_set()
-
-    titulo_label = ctk.CTkLabel(desalinhamento_window, text="Informações sobre Desalinhamento", font=("Helvetica", 16, "bold"))
-    titulo_label.pack(pady=20)
-
-    info_label = ctk.CTkLabel(desalinhamento_window, text="Aqui serão exibidos dados sobre Desalinhamento.", font=("Helvetica", 12))
-    info_label.pack(pady=10)
-
-    fechar_button = ctk.CTkButton(desalinhamento_window, text="Fechar", command=desalinhamento_window.destroy)
-    fechar_button.pack(pady=20)
-
-def abrir_graficos():
-    grafico_window = ctk.CTkToplevel(root)
-    grafico_window.title("Gráficos de Dados Históricos")
-    grafico_window.geometry("800x600")
-
-    # Configura para garantir que a janela de "Gráficos" fique no topo
-    graf
+# Loop principal
+janela.mainloop()
 
